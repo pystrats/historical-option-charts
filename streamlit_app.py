@@ -3,10 +3,20 @@ import pandas as pd
 import math
 from pathlib import Path
 
+import polygon
+from polygon.options.options import OptionsClient
+
+from pytz import timezone
+eastern = timezone('US/Eastern')
+
+import pandas as pd
+from lightweight_charts.widgets import StreamlitChart
+
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
-    page_title='Historical Option Charts',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    page_title='Historical SPXW Charts',
+    page_icon=':chart_with_upwards_trend:', 
+    layout='wide',
 )
 
 # -----------------------------------------------------------------------------
@@ -64,16 +74,60 @@ gdp_df = get_gdp_data()
 
 # Set the title that appears at the top of the page.
 '''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
+# :chart_with_upwards_trend: Historical SPXW Charts
 '''
-
 # Add some spacing
+
+timeframes = {f"{min} minute(s)":min  for min in [1, 2, 3, 5, 10, 15, 30, 60]}
+error_msg = ""
+error = st.error(error_msg, icon="🚨")
+error.empty()
+
+chart = StreamlitChart(height=800)
+chart.layout(background_color='#0e1118')
+
+df = pd.read_csv(Path(__file__).parent/'data/ohlc.csv')
+chart.set(df)
+
+def go(): 
+    error.empty()
+    error_msg = st.session_state.TIMEFRAME
+    st.error(error_msg, icon="🚨")
+
+col1, col2= st.columns(2)
+with col1:
+    st.text_input("Polygon API key", key="API_KEY")
+    API_KEY = st.session_state.API_KEY
+
+    st.date_input('Expiration date', key='EXPIRATION_DATE')
+
+    right = st.selectbox(
+        "Right",
+        ("CALL", "PUT"),
+        key="RIGHT"
+    )
+
+with col2:
+    st.text_input("Strike", key="STRIKE")
+    
+    st.selectbox(
+        "Timeframe",
+        (k for k, _ in timeframes.items()),
+        key="TIMEFRAME"
+    )
+    ''
+    ''
+    
+
+    col2.button("Go", use_container_width=True, type="primary", on_click=go)
+
 ''
-''
+
+
+chart.load()
+
+
+
 
 min_value = gdp_df['Year'].min()
 max_value = gdp_df['Year'].max()
@@ -151,14 +205,3 @@ for i, country in enumerate(selected_countries):
         )
 
 
-import pandas as pd
-from lightweight_charts.widgets import StreamlitChart
-
-chart = StreamlitChart(width=900, height=600)
-
-df = pd.read_csv(Path(__file__).parent/'data/ohlc.csv')
-chart.set(df)
-
-chart.load()
-
-x = 0

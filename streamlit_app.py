@@ -23,9 +23,12 @@ st.set_page_config(
 '''
 # :chart_with_upwards_trend: Historical SPXW Charts
 '''
+def custom_error(error_msg:str):
+    st.error(error_msg, icon="🚨")
+
 timeframes = {f"{min} minute(s)":min  for min in [1, 2, 3, 5, 10, 15, 30, 60]}
 error_msg = ""
-error = st.error(error_msg, icon="🚨")
+error = st.error(error_msg)
 error.empty()
 
 
@@ -36,13 +39,13 @@ def go():
     error.empty()
 
     if st.session_state.API_KEY == '':
-        st.error("Please provide API key", icon="🚨")
+        custom_error("Please provide API key")
         return
 
     try:
         strike = float(st.session_state.STRIKE)
     except:
-        st.error("Invalid strike", icon="🚨")
+        custom_error("Invalid strike")
         return
 
     client = OptionsClient(api_key=API_KEY)
@@ -71,7 +74,7 @@ def go():
 
     
     if bars == []:
-        st.error("No data found. Please provide a valid API key and contract specifications.", icon="🚨")
+        custom_error("Data request failed. Please provide a valid API key and contract specifications.")
         return
     
     _dict=[]

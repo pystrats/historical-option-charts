@@ -131,7 +131,7 @@ def go():
     df = pd.DataFrame(_dict, columns=['time','open','high','low','close','volume'])
     with container:
         charts = set()
-        chart = StreamlitChart(height=900, toolbox=False, inner_width=1, inner_height=0.75)
+        chart = StreamlitChart(height=st.session_state.CHART_HEIGHT, toolbox=False, inner_width=1, inner_height=0.75)
         charts.add(chart)
         chart.time_scale(visible=False)
         chart.legend(visible=True, text=symbol, font_size=16, color_based_on_candle=True)
@@ -151,11 +151,11 @@ def go():
         line.set(RMI(df))
         upper_threshold.set(pd.DataFrame({
             'time': df['time'],
-            'Upper Threshold': [80 for _ in range(df.shape[0])]
+            'Upper Threshold': [st.session_state.UP_THRESHOLD for _ in range(df.shape[0])]
         }))
         lower_threshold.set(pd.DataFrame({
             'time': df['time'],
-            'Lower Threshold': [20 for _ in range(df.shape[0])]
+            'Lower Threshold': [st.session_state.LO_THRESHOLD for _ in range(df.shape[0])]
         }))
         chart.load()
     
@@ -182,11 +182,24 @@ with col2:
         (k for k, _ in timeframes.items()),
         key="TIMEFRAME"
     )
-    ''
-    ''
+
+    
+    st.number_input('Chart Height, px', min_value=250, max_value=3000, value=900, step=10, key='CHART_HEIGHT')
+    
     
 
-    col2.button("Go", use_container_width=True, type="primary", on_click=go)
+    
+
+with col3:
+
+    st.number_input('Upper Threshold', min_value=50, max_value=100, value=90, step=1, key='UP_THRESHOLD')
+
+    st.number_input('Lower Threshold', min_value=0, max_value=50, value=20, step=1, key='LO_THRESHOLD')
+
+    ''
+    ''
+
+    col3.button("Go", use_container_width=True, type="primary", on_click=go)
 
 container = st.container()
 ''

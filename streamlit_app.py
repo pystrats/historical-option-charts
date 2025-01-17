@@ -74,40 +74,34 @@ def RMI(bars):
     })
     return _df
 
-def compute_rsi(series, period):
-    delta = series.diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-    rs = gain / loss
+def RSI(df, period=2):
+    
+    data = df['close']
+    # Calculate price differences
+    delta = data.diff()
+
+    # Separate gains and losses
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+
+    # Calculate average gain and loss using exponential moving average (EMA)
+    avg_gain = gain.rolling(window=period, min_periods=1).mean()
+    avg_loss = loss.rolling(window=period, min_periods=1).mean()
+
+    # Compute the relative strength (RS)
+    rs = avg_gain / avg_loss
+
+    # Compute the RSI
     rsi = 100 - (100 / (1 + rs))
-    return rsi
 
-def compute_percent_rank(series, window):
-    return series.rolling(window).apply(lambda x: (x.rank(pct=True).iloc[-1]) * 100, raw=False)
+    rsi.iloc[:period] = None
 
-def connors_rsi(data, rsi_period=3, streak_rsi_period=2, percent_rank_period=100):
-    # Calculate the RSI
-    rsi = compute_rsi(data['close'], rsi_period)
-    
-    # Calculate the streak
-    streak = (data['close'] - data['close'].shift(1)).apply(
-        lambda x: streak + 1 if x > 0 else streak - 1 if x < 0 else 0
-    )
-    
-    # Calculate the Streak RSI
-    streak_rsi = compute_rsi(streak, streak_rsi_period)
-    
-    # Calculate the Percent Rank of the 1-day change
-    percent_rank = compute_percent_rank(data['close'].diff(), percent_rank_period)
-    
-    # Combine all components
-    connors_rsi = (rsi + streak_rsi + percent_rank) / 3
-
-    df = pd.DataFrame({
-        'time': data['time'],
-        f'ConnorsRSI': connors_rsi
+    _df = pd.DataFrame({
+        'time': bars['time'],
+        f'RSI': rsi
     })
-    return connors_rsi
+
+    return _df
 
 
 def go(): 
@@ -178,7 +172,7 @@ def go():
         charts.add(chart2)
 
         chart3 = chart.create_subchart(width=1, height=0.2, sync=True, sync_crosshairs_only=False)
-        chart3.legend(visible=True, text='ConnorsRSI', font_size=16, lines=True)
+        chart3.legend(visible=True, text='RSI', font_size=16, lines=True)
         chart3.crosshair('magnet')
         charts.add(chart3)
         
@@ -186,7 +180,7 @@ def go():
         upper_threshold = chart2.create_line(name='Upper Threshold', price_label = False, color='#32a852')
         lower_threshold = chart2.create_line(name='Lower Threshold', price_label = False, color='#32a852')
 
-        connors_line = chart3.create_line(name='ConnorsRSI')
+        rsi_line = chart3.create_line(name='RSI')
 
         for _chart in charts: _chart.layout(background_color='#0e1118')
 
@@ -200,7 +194,7 @@ def go():
             'time': df['time'],
             'Lower Threshold': [st.session_state.LO_THRESHOLD for _ in range(df.shape[0])]
         }))
-        connors_line.set(connors_rsi(df))
+        rsi_line.set(RSI(df, period=st.session_state.RSI_PERIOD))
         chart.load()
     
     
@@ -239,6 +233,8 @@ with col3:
     st.number_input('Upper Threshold', min_value=50, max_value=100, value=90, step=1, key='UP_THRESHOLD')
 
     st.number_input('Lower Threshold', min_value=0, max_value=50, value=20, step=1, key='LO_THRESHOLD')
+
+    st.number_input('RSI Period', min_value=2, max_value=100, value=2, step=1, key='RSI_PERIOD')
 
     ''
     ''

@@ -180,7 +180,7 @@ def go():
         chart3 = chart.create_subchart(width=1, height=0.2, sync=True, sync_crosshairs_only=False)
         chart3.legend(visible=True, text='ConnorsRSI', font_size=16, lines=True)
         chart3.crosshair('magnet')
-        chart3.add(chart3)
+        charts.add(chart3)
         
         line = chart2.create_line(name='RMI')
         upper_threshold = chart2.create_line(name='Upper Threshold', price_label = False, color='#32a852')

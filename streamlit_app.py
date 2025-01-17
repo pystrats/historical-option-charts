@@ -91,7 +91,7 @@ def connors_rsi(data, rsi_period=3, streak_rsi_period=2, percent_rank_period=100
     
     # Calculate the streak
     streak = (data['close'] - data['close'].shift(1)).apply(
-        lambda x: streak + 1 if x > 0 else streak - 1 if x < 0 else 0, raw=False
+        lambda x: streak + 1 if x > 0 else streak - 1 if x < 0 else 0
     )
     
     # Calculate the Streak RSI

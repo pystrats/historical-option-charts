@@ -87,10 +87,10 @@ def compute_percent_rank(series, window):
 
 def connors_rsi(data, rsi_period=3, streak_rsi_period=2, percent_rank_period=100):
     # Calculate the RSI
-    rsi = compute_rsi(data['c'], rsi_period)
+    rsi = compute_rsi(data['close'], rsi_period)
     
     # Calculate the streak
-    streak = (data['c'] - data['c'].shift(1)).apply(
+    streak = (data['close'] - data['close'].shift(1)).apply(
         lambda x: streak + 1 if x > 0 else streak - 1 if x < 0 else 0, raw=False
     )
     
@@ -98,7 +98,7 @@ def connors_rsi(data, rsi_period=3, streak_rsi_period=2, percent_rank_period=100
     streak_rsi = compute_rsi(streak, streak_rsi_period)
     
     # Calculate the Percent Rank of the 1-day change
-    percent_rank = compute_percent_rank(data['c'].diff(), percent_rank_period)
+    percent_rank = compute_percent_rank(data['close'].diff(), percent_rank_period)
     
     # Combine all components
     connors_rsi = (rsi + streak_rsi + percent_rank) / 3

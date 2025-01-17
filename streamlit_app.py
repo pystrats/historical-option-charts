@@ -97,7 +97,7 @@ def RSI(df, period=2):
     rsi.iloc[:period] = None
 
     _df = pd.DataFrame({
-        'time': bars['time'],
+        'time': df['time'],
         f'RSI': rsi
     })
 
